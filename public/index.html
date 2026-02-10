@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rhetorik & Logik – Memory + Tabu (Vollversion)</title>
+  <style>
+    :root {
+      --bg-1: #0f1a2b;
+      --bg-2: #1b2b45;
+      --bg-3: #253a5c;
+      --accent-1: #ffb703;
+      --accent-2: #fb8500;
+      --accent-3: #8ecae6;
+      --accent-4: #219ebc;
+      --card: #f6f1e9;
+      --card-dark: #1e293b;
+      --ink: #0b1324;
+      --muted: #5a6b84;
+      --good: #2d6a4f;
+      --bad: #9b2226;
+      --shadow: 0 16px 30px rgba(0,0,0,0.25);
+      --glass: rgba(255,255,255,0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Futura", "Avenir Next", "Gill Sans", sans-serif;
+      color: #eef2ff;
+      background: radial-gradient(1200px 800px at 15% 15%, #2b3f62 0%, #1b2b45 45%, #0f1a2b 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 20px 24px 12px;
+    }
+
+    h1 {
+      margin: 0 0 6px 0;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      color: #cbd5e1;
+      font-size: 0.98rem;
+    }
+
+    .wrap {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) 1fr;
+      gap: 18px;
+      padding: 0 24px 24px;
+    }
+
+    @media (max-width: 1100px) {
+      .wrap { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 16px;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+
+    .panel h2 {
+      margin: 0 0 8px 0;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .scores {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .scores-4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .score {
+      padding: 12px;
+      background: #0b1627;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .score.active {
+      outline: 2px solid var(--accent-1);
+      box-shadow: 0 0 0 3px rgba(255,183,3,0.25);
+    }
+
+    .score h3 { margin: 0; font-size: 1rem; }
+    .score .points { font-size: 1.8rem; font-weight: 800; }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    .btn-primary { background: var(--accent-1); color: #1c1400; }
+    .btn-secondary { background: var(--accent-4); color: #e6f6ff; }
+    .btn-ghost { background: transparent; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); }
+    .btn-warn { background: #ef476f; color: #fff; }
+    .btn-good { background: #2d6a4f; color: #fff; }
+
+    .settings label {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.95rem;
+      color: #dbeafe;
+    }
+
+    .settings input[type="checkbox"],
+    .settings input[type="radio"] {
+      transform: scale(1.1);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      background: #0b1627;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      cursor: pointer;
+    }
+
+    .chip.active { background: var(--accent-2); color: #1b1102; border-color: rgba(255,255,255,0.18); }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      aspect-ratio: 3 / 4;
+      perspective: 900px;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.35s ease;
+    }
+
+    .card.flip .card-inner { transform: rotateY(180deg); }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      text-align: center;
+      backface-visibility: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .card-front {
+      background: linear-gradient(140deg, #ffb703, #fb8500);
+      color: #1b1102;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .card-back {
+      background: var(--card);
+      color: var(--ink);
+      transform: rotateY(180deg);
+      font-size: 0.92rem;
+    }
+
+    .card.matched .card-back {
+      background: #d8f3dc;
+      border: 2px solid #2d6a4f;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      background: #e2e8f0;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 40;
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-card {
+      background: #f8fafc;
+      color: #0b1324;
+      border-radius: 20px;
+      padding: 18px;
+      width: min(820px, 100%);
+      box-shadow: var(--shadow);
+    }
+
+    .tabu-words {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 12px;
+    }
+
+    .tabu {
+      background: #ffccd5;
+      color: #6b0f1a;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .rules {
+      font-size: 0.95rem;
+      color: #27303f;
+      line-height: 1.45;
+    }
+
+    .legend {
+      margin-top: 8px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+    }
+
+    .small {
+      font-size: 0.86rem;
+      color: #a3b0c4;
+    }
+
+    .turn-banner {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: #0b1627;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .timer {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: #0b1324;
+      font-weight: 800;
+      margin-left: 8px;
+    }
+
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(15, 23, 42, 0.9);
+      z-index: 60;
+      padding: 16px;
+    }
+
+    .screen.show { display: grid; }
+
+    .screen-card {
+      background: #f8fafc;
+      color: #0b1324;
+      border-radius: 24px;
+      padding: 20px;
+      width: min(960px, 100%);
+      box-shadow: var(--shadow);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .room {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    input[type="text"] {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    .status {
+      font-size: 0.88rem;
+      color: #dbeafe;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Rhetorik & Logik – Memory + Tabu (Vollversion)</h1>
+    <div class="subtitle">Digitales Spielfeld, virtuelle Karten, 2–4 Teams, lokaler Mehrspieler‑Host.</div>
+  </header>
+
+  <div class="wrap">
+    <aside class="panel">
+      <h2>Spielsteuerung</h2>
+      <div class="scores" id="scoresRow1">
+        <div id="scoreA" class="score active"><h3>Team A</h3><div class="points" id="pointsA">0</div></div>
+        <div id="scoreB" class="score"><h3>Team B</h3><div class="points" id="pointsB">0</div></div>
+      </div>
+      <div class="scores-4" id="scoresRow2" style="display:none;">
+        <div id="scoreC" class="score"><h3>Team C</h3><div class="points" id="pointsC">0</div></div>
+        <div id="scoreD" class="score"><h3>Team D</h3><div class="points" id="pointsD">0</div></div>
+      </div>
+
+      <div class="turn-banner" id="turnBanner">Zug: Team A</div>
+
+      <div class="controls">
+        <button class="btn-primary" id="btnSwitch">Zug wechseln</button>
+        <button class="btn-secondary" id="btnReset">Neues Spiel</button>
+        <button class="btn-ghost" id="btnHow">Spielanleitung öffnen</button>
+      </div>
+
+      <div class="settings" style="margin-top: 14px;">
+        <h2>Teams</h2>
+        <label><input type="radio" name="teams" id="teams2" checked /> 2 Teams (A/B)</label>
+        <label><input type="radio" name="teams" id="teams3" /> 3 Teams (A/B/C)</label>
+        <label><input type="radio" name="teams" id="teams4" /> 4 Teams (A/B/C/D)</label>
+      </div>
+
+      <div class="settings" style="margin-top: 14px;">
+        <h2>Optionen</h2>
+        <label><input type="checkbox" id="optPairPoint" checked /> 1 Punkt für gefundenes Memory‑Paar</label>
+        <label><input type="checkbox" id="optExplainPoint" checked /> +1 Bonuspunkt für korrektes Tabu‑Erklären</label>
+        <label><input type="checkbox" id="optAutoSwitch" checked /> Zug automatisch wechseln, wenn kein Paar gefunden</label>
+        <label><input type="checkbox" id="optFinderKeepsPair" checked /> Memory‑Punkt geht immer an das Team, das das Paar gefunden hat</label>
+        <label><input type="checkbox" id="optTimer" checked /> Erklär‑Timer (30 Sekunden)</label>
+        <label><input type="checkbox" id="optSounds" checked /> Soundeffekte aktivieren</label>
+      </div>
+
+      <div style="margin-top: 12px;">
+        <h2>Mehrspieler (lokal)</h2>
+        <div class="room">
+          <button class="btn-secondary" id="btnHost">Als Host starten</button>
+          <div class="grid-2">
+            <input type="text" id="roomCode" placeholder="Raum‑Code (z. B. ABC123)" />
+            <button class="btn-primary" id="btnJoin">Raum beitreten</button>
+          </div>
+          <div class="status" id="netStatus">Offline – nur lokal.</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 12px;">
+        <h2>Deck‑Auswahl</h2>
+        <div class="chips" id="deckFilters"></div>
+        <div class="legend">Je mehr Kategorien, desto größer das Memory.</div>
+      </div>
+    </aside>
+
+    <main class="panel">
+      <h2>Spielfeld</h2>
+      <div id="board" class="board"></div>
+      <div class="small" style="margin-top: 10px;">Klicke genau zwei Karten. Treffer löst die Tabu‑Challenge aus.</div>
+    </main>
+  </div>
+
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <h3>Tabu‑Challenge</h3>
+      <div id="challengeTerm" class="rules"></div>
+      <div class="tabu-words" id="tabuWords"></div>
+      <div class="rules" id="challengeHint"></div>
+      <div class="rules" style="margin-top: 6px;">
+        Erkläre den Begriff ohne die Tabu‑Wörter. Das Team, das korrekt erklärt, erhält die Punkte.
+        <span id="timer" class="timer" style="display:none;">30</span>
+      </div>
+      <div class="controls" id="challengeControls" style="margin-top: 10px;"></div>
+    </div>
+  </div>
+
+  <div id="howto" class="screen" aria-hidden="true">
+    <div class="screen-card">
+      <h2>Ausführliche Spielanleitung</h2>
+      <div class="rules">
+        <strong>Spielablauf (Variante 2: Wettbewerbsmodus)</strong><br>
+        1. Teams A und B (optional C/D) treten gegeneinander an. Team A beginnt.<br>
+        2. Das aktive Team deckt nacheinander zwei Memory‑Karten auf.<br>
+        3. <strong>Kein Paar</strong>: Karten drehen sich zurück. Wenn „Zug automatisch wechseln“ aktiv ist, ist das nächste Team dran.<br>
+        4. <strong>Paar gefunden</strong>: Das aktive Team muss den gefundenen Begriff <em>tabu‑konform</em> erklären. Die Tabu‑Wörter werden angezeigt und dürfen nicht verwendet werden (auch nicht als Teilwörter).<br>
+        5. <strong>Gelingt die Erklärung</strong>: Das aktive Team erhält die Punkte gemäß den Optionen (Memory‑Punkt + Bonuspunkt).<br>
+        6. <strong>Misslingt die Erklärung</strong>: Das nächste Team darf sofort „stehlen“ und versuchen zu erklären. Schafft es die Erklärung, erhält es die Bonuspunkte (und optional auch den Memory‑Punkt, je nach Option).<br>
+        7. Spiel endet, wenn alle Paare gefunden sind oder eine zuvor vereinbarte Punktzahl erreicht wurde.
+        <br><br>
+        <strong>Punkte (optional):</strong><br>
+        - 1 Punkt = gefundenes Memory‑Paar.<br>
+        - +1 Bonuspunkt = korrektes Tabu‑Erklären.<br>
+        <br>
+        <strong>Beispiel (Tabu):</strong><br>
+        Karte: „Vulkan“ / Tabu: Feuer, Berg, Lava, Ausbruch<br>
+        Korrekte Erklärung: „Ein Naturphänomen, das Material aus dem Erdinneren ausspuckt …“
+        <br><br>
+        <strong>Lokaler Mehrspieler:</strong><br>
+        - Ein Gerät startet als Host und teilt den Raum‑Code.<br>
+        - Weitere Geräte treten mit dem Code bei.<br>
+        - Host‑Aktionen werden in Echtzeit synchronisiert.
+      </div>
+      <div class="controls" style="margin-top: 12px;">
+        <button class="btn-primary" id="btnCloseHow">Zurück zum Spiel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="endScreen" class="screen" aria-hidden="true">
+    <div class="screen-card">
+      <h2>Spielende</h2>
+      <div id="endText" class="rules"></div>
+      <div class="controls" style="margin-top: 12px;">
+        <button class="btn-primary" id="btnRestart">Neues Spiel starten</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const data = [
+      // Stilmittel
+      { id: 'alliteration', term: 'Alliteration', def: 'Wiederholung des Anfangslauts benachbarter Wörter.', category: 'Stilmittel', tabu: ['Anfangslaut', 'Wiederholung', 'Wörter', 'gleich', 'Buchstabe'] },
+      { id: 'anapher', term: 'Anapher', def: 'Wiederholung eines Wortes oder einer Wortgruppe am Satz- oder Versanfang.', category: 'Stilmittel', tabu: ['Wiederholung', 'Anfang', 'Satz', 'Vers', 'Wort'] },
+      { id: 'antithese', term: 'Antithese', def: 'Gegenüberstellung gegensätzlicher Begriffe oder Gedanken.', category: 'Stilmittel', tabu: ['Gegensatz', 'Gegenüberstellung', 'Wortpaar', 'Kontrast'] },
+      { id: 'chiasmus', term: 'Chiasmus', def: 'Überkreuzstellung von Satzgliedern.', category: 'Stilmittel', tabu: ['überkreuz', 'Satzglieder', 'ABBA', 'Kreuz'] },
+      { id: 'ellipse', term: 'Ellipse', def: 'Auslassung eines Satzteils oder Wortes.', category: 'Stilmittel', tabu: ['Auslassung', 'Wort', 'Satzteil', 'weglassen'] },
+      { id: 'euphemismus', term: 'Euphemismus', def: 'Beschönigende Umschreibung eines negativen Sachverhalts.', category: 'Stilmittel', tabu: ['beschönigen', 'Umschreibung', 'negativ', 'harmlos'] },
+      { id: 'hyperbel', term: 'Hyperbel', def: 'Starke Übertreibung.', category: 'Stilmittel', tabu: ['Übertreibung', 'zu viel', 'extrem'] },
+      { id: 'ironie', term: 'Ironie', def: 'Das Gegenteil des Gesagten wird gemeint.', category: 'Stilmittel', tabu: ['Gegenteil', 'sarkastisch', 'meint', 'anders'] },
+      { id: 'klimax', term: 'Klimax', def: 'Steigerung von Ausdrücken.', category: 'Stilmittel', tabu: ['Steigerung', 'stärker', 'Reihe', 'immer mehr'] },
+      { id: 'litotes', term: 'Litotes', def: 'Doppelte Verneinung oder Abschwächung zur Betonung.', category: 'Stilmittel', tabu: ['Verneinung', 'nicht', 'Abschwächung', 'Betonung'] },
+      { id: 'metapher', term: 'Metapher', def: 'Bildhafter Ausdruck, der auf Ähnlichkeit beruht.', category: 'Stilmittel', tabu: ['Bild', 'Vergleich', 'übertragen', 'Ähnlichkeit'] },
+      { id: 'metonymie', term: 'Metonymie', def: 'Ersetzung eines Begriffs durch einen verwandten Ausdruck.', category: 'Stilmittel', tabu: ['Ersetzung', 'Begriff', 'verwandt', 'statt'] },
+      { id: 'oxymoron', term: 'Oxymoron', def: 'Verbindung widersprüchlicher Begriffe.', category: 'Stilmittel', tabu: ['widersprüchlich', 'Begriffe', 'Gegensatz', 'zusammen'] },
+      { id: 'paradoxon', term: 'Paradoxon', def: 'Scheinbarer Widerspruch mit tieferer Wahrheit.', category: 'Stilmittel', tabu: ['Widerspruch', 'scheinbar', 'Wahrheit', 'unerwartet'] },
+      { id: 'parallelismus', term: 'Parallelismus', def: 'Gleicher Aufbau aufeinanderfolgender Sätze oder Satzteile.', category: 'Stilmittel', tabu: ['gleicher Aufbau', 'Satzteile', 'parallel', 'Struktur'] },
+      { id: 'parataxe', term: 'Parataxe', def: 'Reihung gleichwertiger Hauptsätze.', category: 'Stilmittel', tabu: ['Hauptsatz', 'Reihung', 'gleichwertig', 'kurz'] },
+      { id: 'hypotaxe', term: 'Hypotaxe', def: 'Verschachtelter Satzbau mit Nebensätzen.', category: 'Stilmittel', tabu: ['Nebensatz', 'verschachtelt', 'Satzbau', 'lang'] },
+      { id: 'personifikation', term: 'Personifikation', def: 'Vermenschlichung unbelebter Dinge oder abstrakter Begriffe.', category: 'Stilmittel', tabu: ['vermenschlichen', 'Ding', 'abstrakt', 'Person'] },
+      { id: 'pleonasmus', term: 'Pleonasmus', def: 'Überflüssige Wiederholung gleicher Bedeutungen.', category: 'Stilmittel', tabu: ['überflüssig', 'Wiederholung', 'gleich', 'Bedeutung'] },
+      { id: 'rhet_frage', term: 'Rhetorische Frage', def: 'Frage, auf die keine Antwort erwartet wird.', category: 'Stilmittel', tabu: ['Frage', 'keine Antwort', 'erwarten', 'scheinbar'] },
+      { id: 'symbol', term: 'Symbol', def: 'Sinnbild, das auf etwas Allgemeines verweist.', category: 'Stilmittel', tabu: ['Sinnbild', 'verweisen', 'allgemein', 'Zeichen'] },
+      { id: 'synaesthesie', term: 'Synästhesie', def: 'Vermischung verschiedener Sinnesbereiche.', category: 'Stilmittel', tabu: ['Sinne', 'vermischen', 'Sehen', 'Hören'] },
+      { id: 'vergleich', term: 'Vergleich', def: 'Verknüpfung zweier Bereiche durch ein Vergleichswort.', category: 'Stilmittel', tabu: ['wie', 'als', 'vergleichen', 'zweier'] },
+      { id: 'wiederholung', term: 'Wiederholung', def: 'Mehrfache Nennung desselben Wortes zur Betonung.', category: 'Stilmittel', tabu: ['mehrfach', 'Wort', 'Betonung', 'nennen'] },
+      { id: 'neologismus', term: 'Neologismus', def: 'Neuschöpfung eines Wortes.', category: 'Stilmittel', tabu: ['neu', 'Wort', 'erfinden', 'Schöpfung'] },
+      { id: 'onomatopoesie', term: 'Onomatopoesie', def: 'Lautmalerei – Nachahmung eines Geräuschs.', category: 'Stilmittel', tabu: ['Laut', 'Geräusch', 'nachahmen', 'Klang'] },
+      { id: 'inversion', term: 'Inversion', def: 'Umstellung der üblichen Satzfolge.', category: 'Stilmittel', tabu: ['Umstellung', 'Satzfolge', 'anders', 'normal'] },
+      { id: 'asyndeton', term: 'Asyndeton', def: 'Reihung ohne Konjunktionen.', category: 'Stilmittel', tabu: ['ohne', 'und', 'Konjunktion', 'Reihe'] },
+      { id: 'polysyndeton', term: 'Polysyndeton', def: 'Reihung mit übermäßiger Verwendung von Konjunktionen.', category: 'Stilmittel', tabu: ['viele', 'und', 'Konjunktion', 'Reihe'] },
+
+      // Grundbegriffe Argumentation
+      { id: 'these', term: 'These', def: 'Behauptung, die begründet wird.', category: 'Grundbegriffe', tabu: ['Behauptung', 'begründet', 'Aussage'] },
+      { id: 'praemisse', term: 'Argument (Prämisse)', def: 'Begründung für die These.', category: 'Grundbegriffe', tabu: ['Begründung', 'These', 'Grund'] },
+      { id: 'konklusion', term: 'Konklusion', def: 'Schlussfolgerung, die aus den Prämissen folgt.', category: 'Grundbegriffe', tabu: ['Schlussfolgerung', 'folgt', 'Prämisse'] },
+      { id: 'gueltigkeit', term: 'Gültigkeit', def: 'Konklusion folgt logisch notwendig oder wahrscheinlich aus den Prämissen.', category: 'Grundbegriffe', tabu: ['logisch', 'notwendig', 'wahrscheinlich', 'Prämisse'] },
+
+      // Schlussarten
+      { id: 'modus_ponens', term: 'Modus ponens', def: 'Wenn A, dann B. A. Also B.', category: 'Schlussarten', tabu: ['Wenn', 'dann', 'A', 'B', 'also'] },
+      { id: 'modus_tollens', term: 'Modus tollens', def: 'Wenn A, dann B. Nicht B. Also nicht A.', category: 'Schlussarten', tabu: ['Wenn', 'dann', 'nicht', 'A', 'B'] },
+      { id: 'syllogismus', term: 'Kettenschluss (Syllogismus)', def: 'Alle A sind B. Alle B sind C. Also alle A sind C.', category: 'Schlussarten', tabu: ['alle', 'A', 'B', 'C', 'Kette'] },
+      { id: 'disjunktiv', term: 'Disjunktiver Syllogismus', def: 'Entweder A oder B. Nicht A. Also B.', category: 'Schlussarten', tabu: ['entweder', 'oder', 'nicht', 'A', 'B'] },
+      { id: 'induktion', term: 'Induktion', def: 'Vom Besonderen auf das Allgemeine schließen.', category: 'Schlussarten', tabu: ['besonders', 'allgemein', 'Regel', 'Beispiele'] },
+      { id: 'abduktion', term: 'Abduktion', def: 'Vom Ergebnis auf die wahrscheinlichste Ursache schließen.', category: 'Schlussarten', tabu: ['Ergebnis', 'Ursache', 'wahrscheinlich', 'Diagnose'] },
+      { id: 'analogie', term: 'Analoger Schluss', def: 'Übertragung bekannter Strukturen auf Ähnliches.', category: 'Schlussarten', tabu: ['Übertragung', 'ähnlich', 'Struktur', 'Vergleich'] },
+
+      // Fehlschlüsse
+      { id: 'aff_konsequens', term: 'Affirmation des Konsequens', def: 'Wenn A, dann B. B. Also A.', category: 'Fehlschlüsse', tabu: ['Wenn', 'dann', 'B', 'A', 'falsch'] },
+      { id: 'neg_antezedens', term: 'Negation des Antezedens', def: 'Wenn A, dann B. Nicht A. Also nicht B.', category: 'Fehlschlüsse', tabu: ['Wenn', 'dann', 'nicht', 'A', 'B'] },
+      { id: 'zirkelschluss', term: 'Zirkelschluss', def: 'These wird durch sich selbst begründet.', category: 'Fehlschlüsse', tabu: ['These', 'selbst', 'Begründung', 'Kreis'] },
+      { id: 'falsches_dilemma', term: 'Falsches Dilemma', def: 'Nur zwei Optionen dargestellt, obwohl mehr existieren.', category: 'Fehlschlüsse', tabu: ['zwei', 'Optionen', 'entweder', 'oder'] },
+      { id: 'scheinkausal', term: 'Scheinkausalität', def: 'Verwechslung von Korrelation und Kausalität.', category: 'Fehlschlüsse', tabu: ['Korrelation', 'Kausalität', 'verwechseln', 'Ursache'] },
+      { id: 'ad_hominem', term: 'ad hominem', def: 'Angriff auf die Person statt auf das Argument.', category: 'Fehlschlüsse', tabu: ['Person', 'Angriff', 'Argument', 'statt'] },
+      { id: 'ad_populum', term: 'ad populum', def: 'Berufung auf Mehrheitsmeinung.', category: 'Fehlschlüsse', tabu: ['Mehrheit', 'alle', 'stimmen', 'beliebt'] },
+      { id: 'ad_misericordiam', term: 'ad misericordiam', def: 'Appell an Emotionen statt an Gründe.', category: 'Fehlschlüsse', tabu: ['Emotion', 'Mitleid', 'statt', 'Grund'] },
+      { id: 'ad_baculum', term: 'ad baculum', def: 'Einschüchterung statt Argument.', category: 'Fehlschlüsse', tabu: ['Drohung', 'Einschüchterung', 'Argument', 'Angst'] },
+      { id: 'ad_verecundiam', term: 'ad verecundiam', def: 'Berufung auf Autorität, auch wenn fachfremd.', category: 'Fehlschlüsse', tabu: ['Autorität', 'berühmt', 'fremd', 'Experte'] },
+      { id: 'ad_ignorantiam', term: 'ad ignorantiam', def: 'Etwas gilt, weil das Gegenteil nicht bewiesen ist.', category: 'Fehlschlüsse', tabu: ['nicht bewiesen', 'also', 'wahr', 'Unwissen'] },
+      { id: 'ad_consequentiam', term: 'ad consequentiam', def: 'Wahrheit wird an gewünschte Folgen gebunden.', category: 'Fehlschlüsse', tabu: ['Folgen', 'gewünscht', 'wahr', 'muss'] },
+      { id: 'strohmann', term: 'Strohmann', def: 'Verzerrte Darstellung der Gegenseite.', category: 'Fehlschlüsse', tabu: ['verzerrt', 'Gegenseite', 'übertreiben', 'karikieren'] },
+      { id: 'falsche_analogie', term: 'Falsche Analogie', def: 'Vergleich nicht wirklich vergleichbarer Dinge.', category: 'Fehlschlüsse', tabu: ['Vergleich', 'unpassend', 'ähnlich', 'falsch'] },
+      { id: 'slippery', term: 'Slippery Slope', def: 'Eine Handlung führt angeblich unvermeidlich zu extremer Folge.', category: 'Fehlschlüsse', tabu: ['unvermeidlich', 'extrem', 'Folge', 'führt'] },
+      { id: 'red_herring', term: 'Red Herring', def: 'Ablenkung vom Thema.', category: 'Fehlschlüsse', tabu: ['Ablenkung', 'Thema', 'ausweichen', 'anderes'] },
+      { id: 'ad_temporum', term: 'ad temporum', def: 'Etwas gilt, weil es schon immer so war.', category: 'Fehlschlüsse', tabu: ['immer', 'schon', 'Tradition', 'Gewohnheit'] },
+      { id: 'ad_novitatem', term: 'ad novitatem', def: 'Etwas gilt, weil es neu ist.', category: 'Fehlschlüsse', tabu: ['neu', 'besser', 'modern', 'frisch'] },
+      { id: 'non_sequitur', term: 'Non sequitur', def: 'Schluss passt logisch nicht zu den Prämissen.', category: 'Fehlschlüsse', tabu: ['logisch', 'passt nicht', 'Prämisse', 'Schluss'] },
+      { id: 'komposition', term: 'Kompositionsfehlschluss', def: 'Eigenschaften von Teilen werden aufs Ganze übertragen.', category: 'Fehlschlüsse', tabu: ['Teil', 'Ganzes', 'übertragen', 'Eigenschaft'] },
+      { id: 'division', term: 'Divisionsfehlschluss', def: 'Eigenschaften des Ganzen werden auf Teile übertragen.', category: 'Fehlschlüsse', tabu: ['Ganzes', 'Teil', 'übertragen', 'Eigenschaft'] },
+      { id: 'aequivokation', term: 'Äquivokation', def: 'Begriff wird unterschiedlich verwendet.', category: 'Fehlschlüsse', tabu: ['Begriff', 'mehrdeutig', 'unterschiedlich', 'Wort'] },
+    ];
+
+    const categories = ['Stilmittel', 'Grundbegriffe', 'Schlussarten', 'Fehlschlüsse'];
+    const activeCats = new Set(categories);
+
+    const boardEl = document.getElementById('board');
+    const modal = document.getElementById('modal');
+    const challengeTerm = document.getElementById('challengeTerm');
+    const tabuWordsEl = document.getElementById('tabuWords');
+    const challengeHint = document.getElementById('challengeHint');
+    const challengeControls = document.getElementById('challengeControls');
+    const timerEl = document.getElementById('timer');
+
+    const pointsEls = {
+      A: document.getElementById('pointsA'),
+      B: document.getElementById('pointsB'),
+      C: document.getElementById('pointsC'),
+      D: document.getElementById('pointsD')
+    };
+    const scoreEls = {
+      A: document.getElementById('scoreA'),
+      B: document.getElementById('scoreB'),
+      C: document.getElementById('scoreC'),
+      D: document.getElementById('scoreD')
+    };
+    const turnBanner = document.getElementById('turnBanner');
+
+    const optPairPoint = document.getElementById('optPairPoint');
+    const optExplainPoint = document.getElementById('optExplainPoint');
+    const optAutoSwitch = document.getElementById('optAutoSwitch');
+    const optFinderKeepsPair = document.getElementById('optFinderKeepsPair');
+    const optTimer = document.getElementById('optTimer');
+    const optSounds = document.getElementById('optSounds');
+
+    const howto = document.getElementById('howto');
+    const endScreen = document.getElementById('endScreen');
+    const endText = document.getElementById('endText');
+
+    const teams2 = document.getElementById('teams2');
+    const teams3 = document.getElementById('teams3');
+    const teams4 = document.getElementById('teams4');
+    const scoresRow2 = document.getElementById('scoresRow2');
+
+    const btnHost = document.getElementById('btnHost');
+    const btnJoin = document.getElementById('btnJoin');
+    const roomCodeInput = document.getElementById('roomCode');
+    const netStatus = document.getElementById('netStatus');
+
+    let currentTeam = 'A';
+    let points = { A: 0, B: 0, C: 0, D: 0 };
+    let flipped = [];
+    let lockBoard = false;
+    let currentPairFinder = 'A';
+    let timerId = null;
+    let timeLeft = 30;
+    let teams = ['A', 'B'];
+
+    let socket = null;
+    let isHost = false;
+    let roomCode = '';
+    const clientId = Math.random().toString(36).slice(2, 10);
+
+    function setTeam(team) {
+      currentTeam = team;
+      teams.forEach(t => scoreEls[t].classList.toggle('active', t === team));
+      turnBanner.textContent = `Zug: Team ${team}`;
+    }
+
+    function updatePoints() {
+      teams.forEach(t => pointsEls[t].textContent = points[t]);
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function buildDeck() {
+      const items = data.filter(d => activeCats.has(d.category));
+      const deck = [];
+      items.forEach(item => {
+        deck.push({ id: item.id, type: 'term', label: item.term, category: item.category, item });
+        deck.push({ id: item.id, type: 'def', label: item.def, category: item.category, item });
+      });
+      return shuffle(deck);
+    }
+
+    function renderBoard() {
+      boardEl.innerHTML = '';
+      const deck = buildDeck();
+      deck.forEach((card, idx) => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card';
+        cardEl.dataset.id = card.id;
+        cardEl.dataset.type = card.type;
+        cardEl.dataset.index = idx;
+        cardEl.innerHTML = `
+          <div class="card-inner">
+            <div class="card-face card-front">Memory</div>
+            <div class="card-face card-back">
+              <div>
+                <div class="badge">${card.category}</div>
+                <div>${card.label}</div>
+              </div>
+            </div>
+          </div>
+        `;
+        cardEl.addEventListener('click', () => onCardClick(cardEl, card));
+        boardEl.appendChild(cardEl);
+      });
+      flipped = [];
+      lockBoard = false;
+    }
+
+    function onCardClick(cardEl, card) {
+      if (lockBoard) return;
+      if (cardEl.classList.contains('flip') || cardEl.classList.contains('matched')) return;
+
+      cardEl.classList.add('flip');
+      playSound('flip');
+      flipped.push({ cardEl, card });
+
+      if (flipped.length === 2) {
+        lockBoard = true;
+        const [a, b] = flipped;
+        const isMatch = a.card.id === b.card.id && a.card.type !== b.card.type;
+        if (isMatch) {
+          a.cardEl.classList.add('matched');
+          b.cardEl.classList.add('matched');
+          currentPairFinder = currentTeam;
+          playSound('match');
+          setTimeout(() => openChallenge(a.card.item), 320);
+        } else {
+          playSound('fail');
+          setTimeout(() => {
+            a.cardEl.classList.remove('flip');
+            b.cardEl.classList.remove('flip');
+            flipped = [];
+            lockBoard = false;
+            if (optAutoSwitch.checked) switchTurn();
+          }, 850);
+        }
+      }
+      syncState();
+    }
+
+    function openChallenge(item) {
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      challengeTerm.innerHTML = `<strong>Begriff:</strong> ${item.term}`;
+      tabuWordsEl.innerHTML = '';
+      item.tabu.forEach(word => {
+        const span = document.createElement('span');
+        span.className = 'tabu';
+        span.textContent = word;
+        tabuWordsEl.appendChild(span);
+      });
+      challengeHint.textContent = `Team ${currentTeam} erklärt jetzt tabu‑konform.`;
+
+      challengeControls.innerHTML = '';
+      const okBtn = document.createElement('button');
+      okBtn.className = 'btn-good';
+      okBtn.textContent = `Team ${currentTeam} korrekt erklärt`;
+      okBtn.onclick = () => awardPoints(currentTeam, true);
+
+      const failBtn = document.createElement('button');
+      failBtn.className = 'btn-warn';
+      failBtn.textContent = `Team ${currentTeam} schafft nicht → nächstes Team versucht`;
+      failBtn.onclick = () => stealAttempt(item);
+
+      const neutralBtn = document.createElement('button');
+      neutralBtn.className = 'btn-ghost';
+      neutralBtn.textContent = 'Niemand korrekt (weiter)';
+      neutralBtn.onclick = () => closeChallenge();
+
+      challengeControls.append(okBtn, failBtn, neutralBtn);
+
+      startTimer();
+      syncState();
+    }
+
+    function stealAttempt(item) {
+      const stealingTeam = nextTeam(currentTeam);
+      challengeHint.textContent = `Team ${stealingTeam} darf stehlen und erklären.`;
+      challengeControls.innerHTML = '';
+
+      const okBtn = document.createElement('button');
+      okBtn.className = 'btn-good';
+      okBtn.textContent = `Team ${stealingTeam} korrekt erklärt`;
+      okBtn.onclick = () => awardPoints(stealingTeam, true);
+
+      const failBtn = document.createElement('button');
+      failBtn.className = 'btn-ghost';
+      failBtn.textContent = 'Kein Team korrekt (weiter)';
+      failBtn.onclick = () => closeChallenge();
+
+      challengeControls.append(okBtn, failBtn);
+      resetTimer();
+      syncState();
+    }
+
+    function awardPoints(team, explained) {
+      if (optPairPoint.checked) {
+        const pairTeam = optFinderKeepsPair.checked ? currentPairFinder : team;
+        points[pairTeam] += 1;
+      }
+      if (optExplainPoint.checked && explained) {
+        points[team] += 1;
+        playSound('success');
+      }
+      updatePoints();
+      closeChallenge();
+      checkGameEnd();
+      syncState();
+    }
+
+    function closeChallenge() {
+      stopTimer();
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+      flipped = [];
+      lockBoard = false;
+      syncState();
+    }
+
+    function switchTurn() {
+      setTeam(nextTeam(currentTeam));
+      syncState();
+    }
+
+    function nextTeam(team) {
+      const idx = teams.indexOf(team);
+      return teams[(idx + 1) % teams.length];
+    }
+
+    function buildFilters() {
+      const filtersEl = document.getElementById('deckFilters');
+      filtersEl.innerHTML = '';
+      categories.forEach(cat => {
+        const btn = document.createElement('div');
+        btn.className = 'chip active';
+        btn.textContent = cat;
+        btn.onclick = () => {
+          if (activeCats.has(cat)) {
+            activeCats.delete(cat);
+            btn.classList.remove('active');
+          } else {
+            activeCats.add(cat);
+            btn.classList.add('active');
+          }
+          renderBoard();
+          syncState();
+        };
+        filtersEl.appendChild(btn);
+      });
+    }
+
+    function startTimer() {
+      stopTimer();
+      if (!optTimer.checked) {
+        timerEl.style.display = 'none';
+        return;
+      }
+      timeLeft = 30;
+      timerEl.style.display = 'inline-block';
+      timerEl.textContent = timeLeft;
+      timerId = setInterval(() => {
+        timeLeft -= 1;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          stopTimer();
+          challengeHint.textContent = 'Zeit ist um. Team hat nicht erklärt.';
+          playSound('timeout');
+        }
+      }, 1000);
+    }
+
+    function resetTimer() { startTimer(); }
+
+    function stopTimer() {
+      if (timerId) clearInterval(timerId);
+      timerId = null;
+    }
+
+    function checkGameEnd() {
+      const remaining = document.querySelectorAll('.card:not(.matched)').length;
+      if (remaining === 0) {
+        const sorted = teams.slice().sort((a,b) => points[b] - points[a]);
+        const top = sorted[0];
+        const tie = teams.filter(t => points[t] === points[top]);
+        const winner = tie.length > 1 ? 'Unentschieden' : `Team ${top}`;
+        endText.innerHTML = `Endstand: ${teams.map(t => `Team ${t} ${points[t]}`).join(' – ')}.<br><strong>${winner}</strong> gewinnt!`;
+        endScreen.classList.add('show');
+        endScreen.setAttribute('aria-hidden', 'false');
+        playSound('end');
+      }
+    }
+
+    function setTeams(count) {
+      teams = count === 2 ? ['A','B'] : count === 3 ? ['A','B','C'] : ['A','B','C','D'];
+      scoresRow2.style.display = count >= 3 ? 'grid' : 'none';
+      Object.keys(scoreEls).forEach(t => {
+        scoreEls[t].style.display = teams.includes(t) ? 'block' : 'none';
+      });
+      setTeam('A');
+      syncState();
+    }
+
+    function playSound(type) {
+      if (!optSounds.checked) return;
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g);
+      g.connect(ctx.destination);
+      const now = ctx.currentTime;
+      let freq = 440;
+      let dur = 0.12;
+      if (type === 'flip') { freq = 520; dur = 0.08; }
+      if (type === 'match') { freq = 740; dur = 0.15; }
+      if (type === 'success') { freq = 880; dur = 0.2; }
+      if (type === 'fail') { freq = 220; dur = 0.12; }
+      if (type === 'timeout') { freq = 180; dur = 0.25; }
+      if (type === 'end') { freq = 660; dur = 0.35; }
+      o.frequency.setValueAtTime(freq, now);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.2, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      o.start(now);
+      o.stop(now + dur + 0.02);
+    }
+
+    function serializeState() {
+      const cards = Array.from(document.querySelectorAll('.card')).map((el) => ({
+        id: el.dataset.id,
+        type: el.dataset.type,
+        index: parseInt(el.dataset.index, 10),
+        flip: el.classList.contains('flip'),
+        matched: el.classList.contains('matched'),
+        html: el.querySelector('.card-back').innerHTML
+      }));
+
+      return {
+        teams,
+        currentTeam,
+        points,
+        activeCats: Array.from(activeCats),
+        cards,
+        modal: modal.classList.contains('show'),
+        challengeTerm: challengeTerm.innerHTML,
+        tabuWords: Array.from(tabuWordsEl.children).map(n => n.textContent),
+        challengeHint: challengeHint.textContent,
+        options: {
+          optPairPoint: optPairPoint.checked,
+          optExplainPoint: optExplainPoint.checked,
+          optAutoSwitch: optAutoSwitch.checked,
+          optFinderKeepsPair: optFinderKeepsPair.checked,
+          optTimer: optTimer.checked,
+          optSounds: optSounds.checked
+        }
+      };
+    }
+
+    function applyState(state) {
+      if (!state) return;
+      teams = state.teams || ['A','B'];
+      scoresRow2.style.display = teams.length >= 3 ? 'grid' : 'none';
+      Object.keys(scoreEls).forEach(t => { scoreEls[t].style.display = teams.includes(t) ? 'block' : 'none'; });
+
+      state.activeCats?.forEach(c => activeCats.add(c));
+
+      points = state.points || points;
+      setTeam(state.currentTeam || 'A');
+      updatePoints();
+
+      optPairPoint.checked = !!state.options?.optPairPoint;
+      optExplainPoint.checked = !!state.options?.optExplainPoint;
+      optAutoSwitch.checked = !!state.options?.optAutoSwitch;
+      optFinderKeepsPair.checked = !!state.options?.optFinderKeepsPair;
+      optTimer.checked = !!state.options?.optTimer;
+      optSounds.checked = !!state.options?.optSounds;
+
+      // rebuild board
+      boardEl.innerHTML = '';
+      const cards = state.cards || [];
+      cards.forEach(card => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card';
+        if (card.flip) cardEl.classList.add('flip');
+        if (card.matched) cardEl.classList.add('matched');
+        cardEl.dataset.id = card.id;
+        cardEl.dataset.type = card.type;
+        cardEl.dataset.index = card.index;
+        cardEl.innerHTML = `
+          <div class="card-inner">
+            <div class="card-face card-front">Memory</div>
+            <div class="card-face card-back">${card.html}</div>
+          </div>
+        `;
+        cardEl.addEventListener('click', () => onCardClick(cardEl, { id: card.id, type: card.type }));
+        boardEl.appendChild(cardEl);
+      });
+
+      if (state.modal) {
+        modal.classList.add('show');
+        challengeTerm.innerHTML = state.challengeTerm || '';
+        tabuWordsEl.innerHTML = '';
+        (state.tabuWords || []).forEach(w => {
+          const span = document.createElement('span');
+          span.className = 'tabu';
+          span.textContent = w;
+          tabuWordsEl.appendChild(span);
+        });
+        challengeHint.textContent = state.challengeHint || '';
+      } else {
+        modal.classList.remove('show');
+      }
+    }
+
+    function syncState() {
+      if (!socket || !isHost) return;
+      const state = serializeState();
+      socket.send(JSON.stringify({ type: 'state', state }));
+    }
+
+    function connectSocket(code, asHost) {
+      if (socket) socket.close();
+      socket = new WebSocket(`${location.origin.replace('http', 'ws')}`);
+      socket.addEventListener('open', () => {
+        socket.send(JSON.stringify({ type: 'join', code, id: clientId, asHost }));
+      });
+      socket.addEventListener('message', (ev) => {
+        const msg = JSON.parse(ev.data);
+        if (msg.type === 'joined') {
+          isHost = msg.hostId === clientId;
+          roomCode = code;
+          netStatus.textContent = `Verbunden. Raum ${code}. Rolle: ${isHost ? 'Host' : 'Gast'}`;
+          if (!isHost && msg.state) applyState(msg.state);
+        }
+        if (msg.type === 'state' && !isHost) {
+          applyState(msg.state);
+        }
+        if (msg.type === 'host') {
+          isHost = msg.hostId === clientId;
+          netStatus.textContent = `Verbunden. Raum ${code}. Rolle: ${isHost ? 'Host' : 'Gast'}`;
+        }
+      });
+      socket.addEventListener('close', () => {
+        netStatus.textContent = 'Verbindung getrennt.';
+        isHost = false;
+      });
+    }
+
+    function generateRoomCode() {
+      return Math.random().toString(36).slice(2, 8).toUpperCase();
+    }
+
+    document.getElementById('btnSwitch').addEventListener('click', () => switchTurn());
+    document.getElementById('btnReset').addEventListener('click', () => {
+      points = { A: 0, B: 0, C: 0, D: 0 };
+      updatePoints();
+      setTeam('A');
+      renderBoard();
+      endScreen.classList.remove('show');
+      endScreen.setAttribute('aria-hidden', 'true');
+      syncState();
+    });
+
+    document.getElementById('btnHow').addEventListener('click', () => {
+      howto.classList.add('show');
+      howto.setAttribute('aria-hidden', 'false');
+    });
+    document.getElementById('btnCloseHow').addEventListener('click', () => {
+      howto.classList.remove('show');
+      howto.setAttribute('aria-hidden', 'true');
+    });
+    document.getElementById('btnRestart').addEventListener('click', () => {
+      points = { A: 0, B: 0, C: 0, D: 0 };
+      updatePoints();
+      setTeam('A');
+      renderBoard();
+      endScreen.classList.remove('show');
+      endScreen.setAttribute('aria-hidden', 'true');
+      syncState();
+    });
+
+    teams2.addEventListener('change', () => { if (teams2.checked) setTeams(2); });
+    teams3.addEventListener('change', () => { if (teams3.checked) setTeams(3); });
+    teams4.addEventListener('change', () => { if (teams4.checked) setTeams(4); });
+
+    btnHost.addEventListener('click', () => {
+      const code = generateRoomCode();
+      roomCodeInput.value = code;
+      connectSocket(code, true);
+      syncState();
+    });
+
+    btnJoin.addEventListener('click', () => {
+      const code = roomCodeInput.value.trim().toUpperCase();
+      if (!code) return;
+      connectSocket(code, false);
+    });
+
+    buildFilters();
+    renderBoard();
+    updatePoints();
+  </script>
+</body>
+</html>
