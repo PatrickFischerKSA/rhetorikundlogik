@@ -1,15 +1,23 @@
 # Rhetorik & Logik – Memory + Tabu (Vollversion)
 
-Digitale Vollversion mit Spielfeld, virtuellen Karten, 2–4 Teams, Soundeffekten und lokalem Mehrspieler‑Host.
+Wichtig: Öffne **nicht** nur diese README im Browser. Das Spiel liegt in `public/index.html`.
 
-## Start
+## Schnellstart (lokal ohne Multiplayer)
+
+Doppelklick auf:
+
+```
+public/index.html
+```
+
+## Multiplayer / lokaler Host
 
 ```bash
 npm install
 npm start
 ```
 
-Öffne dann im Browser:
+Dann im Browser:
 
 ```
 http://localhost:3000
