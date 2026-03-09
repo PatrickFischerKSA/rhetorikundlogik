@@ -1,0 +1,26 @@
+name: Aletheia Check
+
+on:
+  push:
+    paths:
+      - "aletheia-wirklichkeitslabor/**"
+      - ".github/workflows/aletheia-check.yml"
+      - ".github/workflows/aletheia-publish-ghcr.yml"
+  pull_request:
+    paths:
+      - "aletheia-wirklichkeitslabor/**"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Aletheia checks
+        run: npm --prefix ./aletheia-wirklichkeitslabor run check
