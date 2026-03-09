@@ -1,5 +1,6 @@
 const SESSION_KEY = "aletheia_multidevice_session_v1";
 const BUILD_ID = "Multi-Device Build 2026-03-09 11:27";
+const PUBLIC_APP_URL = "https://aletheia-wirklichkeitslabor.onrender.com";
 
 const state = {
   view: "landing",
@@ -402,6 +403,10 @@ function currentOrigin() {
   return window.location.origin;
 }
 
+function isPublicDeployment() {
+  return currentOrigin() === PUBLIC_APP_URL;
+}
+
 function isUnsupportedStaticOrigin() {
   const { protocol, hostname } = window.location;
   return protocol === "file:" || hostname.endsWith("github.io");
@@ -427,10 +432,9 @@ function renderStaticBlocker() {
     <section class="panel">
       <div class="danger-note">
         <strong>Diese Seite ist absichtlich gesperrt.</strong>
-        <p>Oeffne stattdessen den laufenden lokalen Spielserver oder die echte Deploy-URL:</p>
-        <p><a class="linkbox" href="http://localhost:8787" target="_blank" rel="noreferrer">http://localhost:8787</a></p>
-        <p><a class="linkbox" href="http://192.168.1.207:8787" target="_blank" rel="noreferrer">http://192.168.1.207:8787</a></p>
-        <p>Wenn diese Adressen nicht funktionieren, muss lokal <code>node server.mjs --host 0.0.0.0 --port 8787</code> laufen oder die App auf einem echten Node-Host deployt werden.</p>
+        <p>Oeffne stattdessen direkt die spielbare Live-Version:</p>
+        <p><a class="linkbox" href="${PUBLIC_APP_URL}" target="_blank" rel="noreferrer">${PUBLIC_APP_URL}</a></p>
+        <p>Nur fuer lokale Entwicklung gilt alternativ weiter <code>http://localhost:8787</code>.</p>
       </div>
     </section>
   `);
@@ -457,7 +461,7 @@ function renderLanding() {
       </div>
       <div class="hero-actions">
         <div class="meta-list">
-          <span class="meta-badge">Server noetig: lokal <code>node server.mjs --host 0.0.0.0 --port 8787</code> oder oeffentliche Deploy-URL</span>
+          <span class="meta-badge">${isPublicDeployment() ? "Oeffentliche Live-Version" : "Lokal oder per Deploy erreichbar"}</span>
           <span class="meta-badge">Solo oder zwei Endgeraete + optionales Board</span>
           <span class="meta-badge">Raumcode + Live-Synchronisierung</span>
           <span class="meta-badge">${BUILD_ID}</span>
@@ -472,7 +476,7 @@ function renderLanding() {
       <div class="danger-note">
         <strong>Wichtig: Alle Geraete muessen dieselbe Server-URL verwenden.</strong>
         <p>Aktuelle Adresse: <a class="linkbox" href="${escapeHtml(currentOrigin())}" target="_blank" rel="noreferrer">${escapeHtml(currentOrigin())}</a></p>
-        <p>Lokal ist das meist <code>http://192.168.1.207:8787</code>. Auf einer oeffentlichen Web-Version wird es dagegen eine normale <code>https://...</code>-Adresse sein.</p>
+        <p>${isPublicDeployment() ? `Fuer Unterricht mit mehreren Endgeraeten reicht jetzt genau diese eine Live-URL: <code>${PUBLIC_APP_URL}</code>.` : "Lokal ist das meist <code>http://192.168.1.207:8787</code>. Auf der oeffentlichen Web-Version ist es stattdessen die normale <code>https://...</code>-Adresse."}</p>
       </div>
     </section>
 
